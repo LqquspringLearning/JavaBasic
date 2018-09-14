@@ -209,4 +209,15 @@ class IoCContextImplTest {
         MyBean myBeanInstance = context.getBean(MyBeanAnotherSubClass.class);
         assertEquals(MyBeanAnotherSubClass.class, myBeanInstance.getClass());
     }
+
+
+    @Test
+    void should_generate_instance_when_Interface() {
+        IoCContext context = new IoCContextImpl();
+        context.registerBean(MyBeanInterface.class, MyBeanInterfaceImpl.class);
+        MyBeanInterface myBeanInstance = context.getBean(MyBeanInterfaceImpl.class);
+        assertEquals("Hello", myBeanInstance.Hello());
+    }
+
+
 }

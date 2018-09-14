@@ -23,7 +23,8 @@ public class IoCContextImpl implements IoCContext {
     @Override
     public <T> void registerBean(Class<? super T> resolveClazz, Class<T> beanClazz) {
         if (!(beanClazz.getSuperclass().equals(resolveClazz))) {
-            throw new IllegalArgumentException();
+            if (!beanClazz.getInterfaces()[0].equals(resolveClazz))
+                throw new IllegalArgumentException();
         }
         Map<Class<?>, Class<?>> subMap = new HashMap<>();
         subMap.put(resolveClazz, beanClazz);
@@ -56,7 +57,7 @@ public class IoCContextImpl implements IoCContext {
     private <T> boolean containerMapcontainKey(Class<T> resolveClazz) {
         boolean[] contains = {false};
         containerMap.forEach((key, value) -> {
-            if (key.containsValue(resolveClazz)||key.containsKey(resolveClazz)) {
+            if (key.containsValue(resolveClazz) || key.containsKey(resolveClazz)) {
                 contains[0] = true;
             }
         });
