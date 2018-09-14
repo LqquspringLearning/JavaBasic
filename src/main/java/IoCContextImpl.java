@@ -18,7 +18,12 @@ public class IoCContextImpl implements IoCContext {
         containerMap.put(beanClazz, false);
     }
 
-
+    @Override
+    public <T> void registerBean(Class<? super T> resolveClazz, Class<T> beanClazz) {
+        if(!beanClazz.getSuperclass().equals(resolveClazz.getClass())){
+            throw new IllegalArgumentException();
+        }
+    }
 
 
     @Override

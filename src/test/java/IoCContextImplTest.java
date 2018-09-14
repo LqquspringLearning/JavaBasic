@@ -155,4 +155,35 @@ class IoCContextImplTest {
         }
     }
 
+
+
+
+
+    /// for problems 3
+
+
+    @Test
+    void should_throw_when_one_of_the_class_is_null() {
+        IoCContext context = new IoCContextImpl();
+        boolean throwException = false;
+        try {
+            context.registerBean(MyBean.class,null);
+        } catch ( Exception e){
+            throwException = true;
+        }
+        assertTrue(throwException);
+    }
+
+    @Test
+     void should_throw_when_two_class_all_null() {
+        IoCContext context = new IoCContextImpl();
+        boolean throwException = false;
+        try {
+            context.registerBean(null,null);
+        } catch ( Exception e){
+            throwException = true;
+        }
+        assertTrue(throwException);
+    }
+
 }
