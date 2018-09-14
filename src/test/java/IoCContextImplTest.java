@@ -87,7 +87,7 @@ class IoCContextImplTest {
     }
 
     @Test
-    void should_get_instance_when_mulitple_bean() {
+    void should_get_instance_when_multiple_bean() {
         IoCContext context = new IoCContextImpl();
         context.registerBean(MyBean.class);
         context.registerBean(MyBeanAnother.class);
