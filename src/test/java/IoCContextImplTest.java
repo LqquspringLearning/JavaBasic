@@ -219,5 +219,30 @@ class IoCContextImplTest {
         assertEquals("Hello", myBeanInstance.Hello());
     }
 
+    @Test
+    void should_register_interface_and_sub_class() {
+        IoCContext context = new IoCContextImpl();
+        context.registerBean(MyBeanInterface.class, MyBeanInterfaceImplAndSubClass.class);
+        context.registerBean(MyBean.class, MyBeanInterfaceImplAndSubClass.class);
+        MyBeanInterface myBeanInstance = context.getBean(MyBeanInterfaceImplAndSubClass.class);
 
+        assertEquals(MyBeanInterface.class, myBeanInstance.getClass().getInterfaces()[0]);
+        MyBean myBean = context.getBean(MyBeanInterfaceImplAndSubClass.class);
+
+        assertEquals(MyBean.class, myBean.getClass().getSuperclass());
+    }
+
+    @Test
+    void should_check_child_class() {
+        IoCContext context = new IoCContextImpl();
+        context.registerBean(MyBean.class, MyBeanSubWithParamOnContructor.class);
+        boolean hasException =false;
+        try {
+            MyBean myBeanInstance = context.getBean(MyBeanSubWithParamOnContructor.class);
+        } catch(Exception e){
+            hasException = true;
+        }
+        assertTrue(hasException);
+
+    }
 }
