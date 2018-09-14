@@ -4,25 +4,28 @@ import java.util.Map;
 
 public class IoCContextImpl implements IoCContext {
 
-    Map<Class<?>, Boolean> containerMap = new HashMap<>();
+    Map<Map<Class<?>, Class<?>>, Boolean> containerMap = new HashMap<>();
 
     @Override
     public void registerBean(Class<?> beanClazz) {
         if (beanClazz == null)
             throw new IllegalArgumentException("resolveClazz is mandatory");
-        if(containerMap.containsKey(beanClazz)){
-            if(containerMap.get(beanClazz)){
+        if (containerMap.containsKey(beanClazz)) {
+            if (containerMap.get(beanClazz)) {
                 throw new IllegalStateException();
             }
         }
-        containerMap.put(beanClazz, false);
+        Map<Class<?>, Class<?>> subMap = new HashMap<>();
+        subMap.put(beanClazz, beanClazz);
+        containerMap.put(subMap, false);
     }
 
     @Override
     public <T> void registerBean(Class<? super T> resolveClazz, Class<T> beanClazz) {
-        if(!beanClazz.getSuperclass().equals(resolveClazz.getClass())){
+        if (!beanClazz.getSuperclass().equals(resolveClazz.getClass())) {
             throw new IllegalArgumentException();
         }
+
     }
 
 
@@ -31,21 +34,30 @@ public class IoCContextImpl implements IoCContext {
 
         if (resolveClazz == null)
             throw new IllegalArgumentException("resolveClazz is mandatory");
-        if (!containerMap.containsKey(resolveClazz))
+
+        if (!containerMapcontainKey(resolveClazz))
             throw new IllegalStateException("resolveClazz is mandatory");
 
         try {
             return resolveClazz.newInstance();
-        }
-        catch (IllegalAccessException e) {
-           throw new IllegalStateException();
-        }
-        catch (InstantiationException e) {
-            if(Modifier.isAbstract(resolveClazz.getModifiers())){
+        } catch (IllegalAccessException e) {
+            throw new IllegalStateException();
+        } catch (InstantiationException e) {
+            if (Modifier.isAbstract(resolveClazz.getModifiers())) {
                 throw new IllegalArgumentException(String.format("%s is abstract", resolveClazz.getName()));
             }
             throw new IllegalStateException(String.format("%s has no default constructor", resolveClazz.getName()));
         }
 
+    }
+
+    private <T> boolean containerMapcontainKey(Class<T> resolveClazz) {
+        boolean[] contains = {false};
+        containerMap.forEach((key, value) -> {
+            if (key.containsKey(resolveClazz)) {
+                contains[0] = true;
+            }
+        });
+        return contains[0];
     }
 }
