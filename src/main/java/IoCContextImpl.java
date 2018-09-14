@@ -18,6 +18,9 @@ public class IoCContextImpl implements IoCContext {
         containerMap.put(beanClazz, false);
     }
 
+
+
+
     @Override
     public <T> T getBean(Class<T> resolveClazz) {
 

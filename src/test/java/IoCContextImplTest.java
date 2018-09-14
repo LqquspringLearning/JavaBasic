@@ -99,7 +99,6 @@ class IoCContextImplTest {
     void should_get_multiple_time_when_already_registered() {
         IoCContext context = new IoCContextImpl();
         context.registerBean(MyBean.class);
-        context.registerBean(MyBeanAnother.class);
         MyBean instance1 = context.getBean(MyBean.class);
         MyBean instance2 = context.getBean(MyBean.class);
         assertEquals(MyBean.class, instance1.getClass());
@@ -111,8 +110,8 @@ class IoCContextImplTest {
     void should_throw_a_exception_when_start_call_getBean_method() {
         IoCContext context = new IoCContextImpl();
         context.registerBean(MyBean.class);
+        context.getBean(MyBean.class);
         try {
-            context.getBean(MyBean.class);
             context.registerBean(MyBean.class);
         } catch (IllegalStateException e) {
             assertSame(IllegalStateException.class, e.getClass());
