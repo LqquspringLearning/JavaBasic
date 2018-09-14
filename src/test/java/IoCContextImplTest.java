@@ -187,8 +187,26 @@ class IoCContextImplTest {
     void should_get_instance_new() {
         IoCContext context = new IoCContextImpl();
         context.registerBean(MyBean.class, MyBeanSubClass.class);
+        MyBean myBeanInstance = context.getBean(MyBeanSubClass.class);
+
+        assertEquals(MyBeanSubClass.class, myBeanInstance.getClass());
+    }
+
+
+    @Test
+    void should_get_this_instance_when_register_another_type() {
+        IoCContext context = new IoCContextImpl();
+        context.registerBean(MyBean.class, MyBeanSubClass.class);
         MyBean myBeanInstance = context.getBean(MyBean.class);
         assertEquals(MyBean.class, myBeanInstance.getClass());
     }
 
+    @Test
+    void should_refresh_container_when_register_same_father_type() {
+        IoCContext context = new IoCContextImpl();
+        context.registerBean(MyBean.class, MyBeanSubClass.class);
+        context.registerBean(MyBean.class, MyBeanAnotherSubClass.class);
+        MyBean myBeanInstance = context.getBean(MyBeanAnotherSubClass.class);
+        assertEquals(MyBeanAnotherSubClass.class, myBeanInstance.getClass());
+    }
 }

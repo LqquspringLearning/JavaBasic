@@ -56,7 +56,7 @@ public class IoCContextImpl implements IoCContext {
     private <T> boolean containerMapcontainKey(Class<T> resolveClazz) {
         boolean[] contains = {false};
         containerMap.forEach((key, value) -> {
-            if (key.containsKey(resolveClazz)) {
+            if (key.containsValue(resolveClazz)||key.containsKey(resolveClazz)) {
                 contains[0] = true;
             }
         });
