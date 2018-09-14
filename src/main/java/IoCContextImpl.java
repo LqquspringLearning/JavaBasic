@@ -22,10 +22,12 @@ public class IoCContextImpl implements IoCContext {
 
     @Override
     public <T> void registerBean(Class<? super T> resolveClazz, Class<T> beanClazz) {
-        if (!beanClazz.getSuperclass().equals(resolveClazz.getClass())) {
+        if (!(beanClazz.getSuperclass().equals(resolveClazz))) {
             throw new IllegalArgumentException();
         }
-
+        Map<Class<?>, Class<?>> subMap = new HashMap<>();
+        subMap.put(resolveClazz, beanClazz);
+        containerMap.put(subMap, false);
     }
 
 

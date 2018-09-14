@@ -103,7 +103,7 @@ class IoCContextImplTest {
         MyBean instance2 = context.getBean(MyBean.class);
         assertEquals(MyBean.class, instance1.getClass());
         assertEquals(MyBean.class, instance2.getClass());
-        assertNotSame(instance1,instance2);
+        assertNotSame(instance1, instance2);
     }
 
     @Test
@@ -137,7 +137,7 @@ class IoCContextImplTest {
         IoCContext context = new IoCContextImpl();
         try {
             context.registerBean(null);
-        } catch(IllegalArgumentException e){
+        } catch (IllegalArgumentException e) {
             assertEquals("resolveClazz is mandatory", e.getMessage());
         }
 
@@ -156,9 +156,6 @@ class IoCContextImplTest {
     }
 
 
-
-
-
     /// for problems 3
 
 
@@ -167,23 +164,31 @@ class IoCContextImplTest {
         IoCContext context = new IoCContextImpl();
         boolean throwException = false;
         try {
-            context.registerBean(MyBean.class,null);
-        } catch ( Exception e){
+            context.registerBean(MyBean.class, null);
+        } catch (Exception e) {
             throwException = true;
         }
         assertTrue(throwException);
     }
 
     @Test
-     void should_throw_when_two_class_all_null() {
+    void should_throw_when_two_class_all_null() {
         IoCContext context = new IoCContextImpl();
         boolean throwException = false;
         try {
-            context.registerBean(null,null);
-        } catch ( Exception e){
+            context.registerBean(null, null);
+        } catch (Exception e) {
             throwException = true;
         }
         assertTrue(throwException);
+    }
+
+    @Test
+    void should_get_instance_new() {
+        IoCContext context = new IoCContextImpl();
+        context.registerBean(MyBean.class, MyBeanSubClass.class);
+        MyBean myBeanInstance = context.getBean(MyBean.class);
+        assertEquals(MyBean.class, myBeanInstance.getClass());
     }
 
 }
