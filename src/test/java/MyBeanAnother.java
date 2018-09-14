@@ -1,5 +1,6 @@
 public class MyBeanAnother {
-    public MyBeanAnother(int t){
+
+    public MyBeanAnother(int t,int k){
 
     }
 }
