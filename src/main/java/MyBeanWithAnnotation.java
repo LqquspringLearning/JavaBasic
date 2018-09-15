@@ -1,4 +1,4 @@
-public class MyBeanWithAnnotation {
+public class MyBeanWithAnnotation extends MyBeanWithAnnotationParentClass {
     @CreateOnTheFly
     private MyDependency dependency;
 

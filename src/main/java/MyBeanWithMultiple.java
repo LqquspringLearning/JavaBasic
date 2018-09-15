@@ -1,4 +1,4 @@
-public class MyBeanWithInterface {
+public class MyBeanWithMultiple {
     public MyDependency getDependency() {
         return dependency;
     }

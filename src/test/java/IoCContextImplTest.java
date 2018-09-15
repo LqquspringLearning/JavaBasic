@@ -293,13 +293,27 @@ class IoCContextImplTest {
     @Test
     void should_get_interface_abstract_instance() {
         IoCContext context = new IoCContextImpl();
-        context.registerBean(MyBeanWithInterface.class);
+        context.registerBean(MyBeanWithMultiple.class);
         context.registerBean(MyDependency.class);
         context.registerBean(MyDependencyAbstract.class, MyDependencyAbstractImpl.class);
         context.registerBean(MyDependencyInterface.class, MyDependencyInterfaceImpl.class);
-        MyBeanWithInterface bean = context.getBean(MyBeanWithInterface.class);
+        MyBeanWithMultiple bean = context.getBean(MyBeanWithMultiple.class);
         assertSame(MyDependencyInterfaceImpl.class, bean.getMyDependencyInterface().getClass());
         assertSame(MyDependencyAbstractImpl.class, bean.getMyDependencyAbstract().getClass());
 
     }
+
+
+    /// those test for problems 5
+    @Test
+    void should_inject_with_inherit() {
+        IoCContext context = new IoCContextImpl();
+        context.registerBean(MyDependencyAbstract.class, MyDependencyAbstractImpl.class);
+        context.registerBean(MyBeanWithAnnotation.class);
+        context.registerBean(MyDependency.class);
+        MyBeanWithAnnotation bean = context.getBean(MyBeanWithAnnotation.class);
+        assertSame(MyDependencyAbstractImpl.class, bean.getMyDependencyAbstract().getClass());
+    }
+
+
 }
