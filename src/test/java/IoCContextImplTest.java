@@ -253,6 +253,7 @@ class IoCContextImplTest {
         IoCContext context = new IoCContextImpl();
         context.registerBean(MyBeanWithAnnotation.class);
         context.registerBean(MyDependency.class);
+        context.registerBean(MyDependencyAbstract.class, MyDependencyAbstractImpl.class);
         MyBeanWithAnnotation bean = context.getBean(MyBeanWithAnnotation.class);
         assertSame(MyDependency.class, bean.getDependency().getClass());
     }
@@ -262,6 +263,7 @@ class IoCContextImplTest {
         IoCContext context = new IoCContextImpl();
         context.registerBean(MyBeanWithAnnotation.class);
         context.registerBean(MyDependency.class);
+        context.registerBean(MyDependencyAbstract.class, MyDependencyAbstractImpl.class);
         MyBeanWithAnnotation bean = context.getBean(MyBeanWithAnnotation.class);
         assertSame(MyDependency.class, bean.getDependency().getClass());
         assertSame(MyDependency.class, bean.getDependency2().getClass());
@@ -286,6 +288,7 @@ class IoCContextImplTest {
         IoCContext context = new IoCContextImpl();
         context.registerBean(MyBeanWithAnnotation.class);
         context.registerBean(MyDependency.class);
+        context.registerBean(MyDependencyAbstract.class, MyDependencyAbstractImpl.class);
         MyBeanWithAnnotation bean = context.getBean(MyBeanWithAnnotation.class);
         assertNull(bean.getMessage());
     }
