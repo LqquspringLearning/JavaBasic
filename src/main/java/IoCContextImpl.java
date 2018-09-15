@@ -39,11 +39,12 @@ public class IoCContextImpl implements IoCContext {
         if (resolveClazz == null)
             throw new IllegalArgumentException("resolveClazz is mandatory");
 
-        if (!containerMapcontainKey(resolveClazz))
+        if (!containerMapContainKey(resolveClazz))
             throw new IllegalStateException("resolveClazz is mandatory");
 
         try {
-            return resolveClazz.newInstance();
+            T resultBean = resolveClazz.newInstance();
+            return resultBean;
         } catch (IllegalAccessException e) {
             throw new IllegalStateException();
         } catch (InstantiationException e) {
@@ -55,7 +56,7 @@ public class IoCContextImpl implements IoCContext {
 
     }
 
-    private <T> boolean containerMapcontainKey(Class<T> resolveClazz) {
+    private <T> boolean containerMapContainKey(Class<T> resolveClazz) {
         boolean[] contains = {false};
         containerMap.forEach((key, value) -> {
             if (key.containsValue(resolveClazz) || key.containsKey(resolveClazz)) {

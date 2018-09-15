@@ -236,13 +236,24 @@ class IoCContextImplTest {
     void should_check_child_class() {
         IoCContext context = new IoCContextImpl();
         context.registerBean(MyBean.class, MyBeanSubWithParamOnContructor.class);
-        boolean hasException =false;
+        boolean hasException = false;
         try {
             MyBean myBeanInstance = context.getBean(MyBeanSubWithParamOnContructor.class);
-        } catch(Exception e){
+        } catch (Exception e) {
             hasException = true;
         }
         assertTrue(hasException);
 
+    }
+
+    ///those test for  problems 4
+
+    @Test
+    void should_support_annotation_inject() {
+        IoCContext context = new IoCContextImpl();
+        context.registerBean(MyBean.class);
+        context.registerBean(MyDenpendency.class);
+        MyBean bean = context.getBean(MyBean.class);
+        assertSame(MyDenpendency.class, bean.getDenpendency().getClass());
     }
 }
