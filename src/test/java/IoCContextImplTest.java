@@ -256,4 +256,17 @@ class IoCContextImplTest {
         MyBeanWithAnnotation bean = context.getBean(MyBeanWithAnnotation.class);
         assertSame(MyDependency.class, bean.getDependency().getClass());
     }
+
+    @Test
+    void should_support_annotation_inject_with_interface() {
+        IoCContext context  = new IoCContextImpl();
+        context.registerBean(MyBeanWithAnnotation.class);
+        boolean hasException = false;
+        try {
+            context.getBean(MyBeanWithAnnotation.class);
+        } catch(Exception e){
+            hasException = true;
+        }
+        assertTrue(hasException);
+    }
 }
