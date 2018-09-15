@@ -10,23 +10,35 @@ public class IoCContextImpl implements IoCContext {
 
     @Override
     public void registerBean(Class<?> beanClazz) {
-        if (beanClazz == null)
-            throw new IllegalArgumentException("resolveClazz is mandatory");
+        paramCheck(beanClazz);
+        putBeanToContainer(beanClazz, beanClazz);
+    }
+
+    private void paramCheck(Class<?> beanClazz) {
+        paramNullCheck(beanClazz);
         if (containerMap.containsKey(beanClazz)) {
             if (containerMap.get(beanClazz)) {
                 throw new IllegalStateException();
             }
         }
-        putBeanToContainer(beanClazz, beanClazz);
+    }
+
+    private void paramNullCheck(Class<?> beanClazz) {
+        if (beanClazz == null)
+            throw new IllegalArgumentException("resolveClazz is mandatory");
     }
 
     @Override
     public <T> void registerBean(Class<? super T> resolveClazz, Class<T> beanClazz) {
+        paramCheck(resolveClazz, beanClazz);
+        putBeanToContainer(resolveClazz, beanClazz);
+    }
+
+    private <T> void paramCheck(Class<? super T> resolveClazz, Class<T> beanClazz) {
         if (!(beanClazz.getSuperclass().equals(resolveClazz))) {
             if (!(Arrays.stream(beanClazz.getInterfaces()).filter(i -> i.equals(resolveClazz)).count() > 0))
                 throw new IllegalArgumentException();
         }
-        putBeanToContainer(resolveClazz, beanClazz);
     }
 
     private void putBeanToContainer(Class<?> resolveClazz, Class<?> beanClazz) {
@@ -38,8 +50,7 @@ public class IoCContextImpl implements IoCContext {
 
     @Override
     public <T> T getBean(Class<T> resolveClazz) {
-        if (resolveClazz == null)
-            throw new IllegalArgumentException("resolveClazz is mandatory");
+        paramNullCheck(resolveClazz);
         if (!containerMapContainKey(resolveClazz))
             throw new IllegalStateException("resolveClazz is mandatory");
         try {
