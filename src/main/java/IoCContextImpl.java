@@ -17,9 +17,7 @@ public class IoCContextImpl implements IoCContext {
                 throw new IllegalStateException();
             }
         }
-        Map<Class<?>, Class<?>> subMap = new HashMap<>();
-        subMap.put(beanClazz, beanClazz);
-        containerMap.put(subMap, false);
+        putBeanToContainer(beanClazz, beanClazz);
     }
 
     @Override
@@ -28,6 +26,10 @@ public class IoCContextImpl implements IoCContext {
             if (!(Arrays.stream(beanClazz.getInterfaces()).filter(i -> i.equals(resolveClazz)).count() > 0))
                 throw new IllegalArgumentException();
         }
+        putBeanToContainer(resolveClazz, beanClazz);
+    }
+
+    private void putBeanToContainer(Class<?> resolveClazz, Class<?> beanClazz) {
         Map<Class<?>, Class<?>> subMap = new HashMap<>();
         subMap.put(resolveClazz, beanClazz);
         containerMap.put(subMap, false);
@@ -36,22 +38,22 @@ public class IoCContextImpl implements IoCContext {
 
     @Override
     public <T> T getBean(Class<T> resolveClazz) {
-
         if (resolveClazz == null)
             throw new IllegalArgumentException("resolveClazz is mandatory");
-
         if (!containerMapContainKey(resolveClazz))
             throw new IllegalStateException("resolveClazz is mandatory");
-
         try {
-            T resultBean = generateInstance(resolveClazz);
-
-            return resultBean;
+            return generateInstance(resolveClazz);
         } catch (IllegalAccessException e) {
             throw new IllegalStateException();
         } catch (InstantiationException e) {
             return handleCreateInstanceException(resolveClazz);
         }
+
+    }
+
+    @Override
+    public void close() throws Exception {
 
     }
 
@@ -69,12 +71,17 @@ public class IoCContextImpl implements IoCContext {
         };
     }
 
-    @Override
-    public void close() throws Exception {
-
+    private <T> T generateInstance(Class<T> resolveClazz) throws InstantiationException, IllegalAccessException {
+        T resultBean = getInstanceType(resolveClazz).newInstance();
+        Field[] resultBeanFields = ReflectorHelper.getAllFields(resolveClazz);
+        Field[] containsCreateOnTheFlyAnnotationFields = Arrays.stream(resultBeanFields).
+                filter(getContainsCreateOnTheFlyAnnotationFields()).toArray(Field[]::new);
+        checkFieldsIsRegistered(containsCreateOnTheFlyAnnotationFields);
+        Arrays.stream(containsCreateOnTheFlyAnnotationFields).forEach(generateFieldInstance(resultBean, resultBeanFields));
+        return resultBean;
     }
 
-    private <T> T generateInstance(Class<T> resolveClazz) throws InstantiationException, IllegalAccessException {
+    private <T> Class<T> getInstanceType(Class<T> resolveClazz) {
         List<Class<T>> instanceType = new ArrayList<>();
         instanceType.add(resolveClazz);
         containerMap.forEach((key, value) -> {
@@ -82,13 +89,7 @@ public class IoCContextImpl implements IoCContext {
                 instanceType.set(0, (Class<T>) key.get(resolveClazz));
             }
         });
-        T resultBean = instanceType.get(0).newInstance();
-        Field[] resultBeanFields = ReflectorHelper.getAllFields(resolveClazz);
-        Field[] containsCreateOnTheFlyAnnotationFields = Arrays.stream(resultBeanFields).
-                filter(getContainsCreateOnTheFlyAnnotationFields()).toArray(Field[]::new);
-        checkFieldsIsRegistered(containsCreateOnTheFlyAnnotationFields);
-        Arrays.stream(containsCreateOnTheFlyAnnotationFields).forEach(generateFieldInstance(resultBean, resultBeanFields));
-        return resultBean;
+        return instanceType.get(0);
     }
 
     private static <T> T handleCreateInstanceException(Class<T> resolveClazz) {
