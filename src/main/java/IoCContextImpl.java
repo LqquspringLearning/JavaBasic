@@ -1,4 +1,5 @@
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,7 +24,7 @@ public class IoCContextImpl implements IoCContext {
     @Override
     public <T> void registerBean(Class<? super T> resolveClazz, Class<T> beanClazz) {
         if (!(beanClazz.getSuperclass().equals(resolveClazz))) {
-            if (!beanClazz.getInterfaces()[0].equals(resolveClazz))
+            if (!(Arrays.stream(beanClazz.getInterfaces()).filter(i -> i.equals(resolveClazz)).count() > 0))
                 throw new IllegalArgumentException();
         }
         Map<Class<?>, Class<?>> subMap = new HashMap<>();
