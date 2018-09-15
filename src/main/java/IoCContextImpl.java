@@ -1,10 +1,11 @@
+import java.awt.*;
 import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.security.Key;
+import java.util.*;
+import java.util.List;
 import java.util.function.Predicate;
 
 public class IoCContextImpl implements IoCContext {
@@ -47,7 +48,7 @@ public class IoCContextImpl implements IoCContext {
             throw new IllegalStateException("resolveClazz is mandatory");
 
         try {
-            T resultBean = resolveClazz.newInstance();
+            T resultBean = generateInstance(resolveClazz);
             Field[] resultBeanFields = resultBean.getClass().getDeclaredFields();
             Field[] containsCreateOnTheFlyAnnotationFields = Arrays.stream(resultBeanFields).
                     filter(getContainsCreateOnTheFlyAnnotationFields()).toArray(Field[]::new);
@@ -56,7 +57,7 @@ public class IoCContextImpl implements IoCContext {
 
                 Object filedInstance = this.getBean(field.getType());
 
-                Field resultBeanField = null;
+                Field resultBeanField;
                 try {
                     resultBeanField = resultBean.getClass().getDeclaredField(field.getName());
                 } catch (NoSuchFieldException e) {
@@ -68,6 +69,7 @@ public class IoCContextImpl implements IoCContext {
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
                 }
+                resultBeanField.setAccessible(false);
             });
             return resultBean;
         } catch (IllegalAccessException e) {
@@ -75,6 +77,18 @@ public class IoCContextImpl implements IoCContext {
         } catch (InstantiationException e) {
             return handleCreateInstanceException(resolveClazz);
         }
+
+    }
+
+    private <T> T generateInstance(Class<T> resolveClazz) throws InstantiationException, IllegalAccessException {
+        List<Class<T>> instanceValue = new ArrayList<>();
+        instanceValue.add(resolveClazz);
+        containerMap.forEach((key, value) -> {
+            if (key.containsKey(resolveClazz)) {
+                instanceValue.set(0, (Class<T>) key.get(resolveClazz));
+            }
+        });
+        return instanceValue.get(0).newInstance();
 
     }
 

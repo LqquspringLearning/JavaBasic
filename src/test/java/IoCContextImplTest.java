@@ -198,7 +198,7 @@ class IoCContextImplTest {
         IoCContext context = new IoCContextImpl();
         context.registerBean(MyBean.class, MyBeanSubClass.class);
         MyBean myBeanInstance = context.getBean(MyBean.class);
-        assertEquals(MyBean.class, myBeanInstance.getClass());
+        assertEquals(MyBeanSubClass.class, myBeanInstance.getClass());
     }
 
     @Test
@@ -215,7 +215,7 @@ class IoCContextImplTest {
     void should_generate_instance_when_Interface() {
         IoCContext context = new IoCContextImpl();
         context.registerBean(MyBeanInterface.class, MyBeanInterfaceImpl.class);
-        MyBeanInterface myBeanInstance = context.getBean(MyBeanInterfaceImpl.class);
+        MyBeanInterface myBeanInstance = context.getBean(MyBeanInterface.class);
         assertEquals("Hello", myBeanInstance.Hello());
     }
 
@@ -258,7 +258,18 @@ class IoCContextImplTest {
     }
 
     @Test
-    void should_support_annotation_inject_with_interface() {
+    void should_support_register_multi_filed() {
+        IoCContext context  = new IoCContextImpl();
+        context.registerBean(MyBeanWithAnnotation.class);
+        context.registerBean(MyDependency.class);
+        MyBeanWithAnnotation bean = context.getBean(MyBeanWithAnnotation.class);
+        assertSame(MyDependency.class, bean.getDependency().getClass());
+        assertSame(MyDependency.class, bean.getDependency2().getClass());
+        assertNotSame(bean.getDependency(),bean.getDependency2());
+    }
+
+    @Test
+    void should_throw_exception_when_field_not_register() {
         IoCContext context  = new IoCContextImpl();
         context.registerBean(MyBeanWithAnnotation.class);
         boolean hasException = false;
@@ -268,5 +279,19 @@ class IoCContextImplTest {
             hasException = true;
         }
         assertTrue(hasException);
+    }
+
+    @Test
+    void should_get_instance_when_one_field_registered_and_another_not_need_registered() {
+        IoCContext context  = new IoCContextImpl();
+        context.registerBean(MyBeanWithAnnotation.class);
+        context.registerBean(MyDependency.class);
+        MyBeanWithAnnotation bean = context.getBean(MyBeanWithAnnotation.class);
+        assertNull(bean.getMessage());
+    }
+
+    @Test
+    void should_get_interface_instance() {
+
     }
 }
