@@ -1,6 +1,7 @@
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 public class IoCContextImpl implements IoCContext {
@@ -44,21 +45,7 @@ public class IoCContextImpl implements IoCContext {
 
         try {
             T resultBean = generateInstance(resolveClazz);
-            Field[] resultBeanFields = ReflectorHelper.getAllFields(resolveClazz);
-            Field[] containsCreateOnTheFlyAnnotationFields = Arrays.stream(resultBeanFields).
-                    filter(getContainsCreateOnTheFlyAnnotationFields()).toArray(Field[]::new);
-            checkFieldsIsRegistered(containsCreateOnTheFlyAnnotationFields);
-            Arrays.stream(containsCreateOnTheFlyAnnotationFields).forEach(field -> {
-                Object filedInstance = this.getBean(field.getType());
-                Field resultBeanField = Arrays.stream(resultBeanFields).filter(f -> f.getName().equals(field.getName())).findFirst().get();
-                resultBeanField.setAccessible(true);
-                try {
-                    resultBeanField.set(resultBean, filedInstance);
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                }
-                resultBeanField.setAccessible(false);
-            });
+
             return resultBean;
         } catch (IllegalAccessException e) {
             throw new IllegalStateException();
@@ -68,20 +55,44 @@ public class IoCContextImpl implements IoCContext {
 
     }
 
-    private <T> T generateInstance(Class<T> resolveClazz) throws InstantiationException, IllegalAccessException {
-        List<Class<T>> instanceValue = new ArrayList<>();
-        instanceValue.add(resolveClazz);
-        containerMap.forEach((key, value) -> {
-            if (key.containsKey(resolveClazz)) {
-                instanceValue.set(0, (Class<T>) key.get(resolveClazz));
+    private <T> Consumer<Field> generateFieldInstance(T resultBean, Field[] resultBeanFields) {
+        return field -> {
+            Object filedInstance = this.getBean(field.getType());
+            Field resultBeanField = Arrays.stream(resultBeanFields).filter(f -> f.getName().equals(field.getName())).findFirst().get();
+            resultBeanField.setAccessible(true);
+            try {
+                resultBeanField.set(resultBean, filedInstance);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
             }
-        });
-        return instanceValue.get(0).newInstance();
+            resultBeanField.setAccessible(false);
+        };
+    }
+
+    @Override
+    public void close() throws Exception {
 
     }
 
+    private <T> T generateInstance(Class<T> resolveClazz) throws InstantiationException, IllegalAccessException {
+        List<Class<T>> instanceType = new ArrayList<>();
+        instanceType.add(resolveClazz);
+        containerMap.forEach((key, value) -> {
+            if (key.containsKey(resolveClazz)) {
+                instanceType.set(0, (Class<T>) key.get(resolveClazz));
+            }
+        });
+        T resultBean = instanceType.get(0).newInstance();
+        Field[] resultBeanFields = ReflectorHelper.getAllFields(resolveClazz);
+        Field[] containsCreateOnTheFlyAnnotationFields = Arrays.stream(resultBeanFields).
+                filter(getContainsCreateOnTheFlyAnnotationFields()).toArray(Field[]::new);
+        checkFieldsIsRegistered(containsCreateOnTheFlyAnnotationFields);
+        Arrays.stream(containsCreateOnTheFlyAnnotationFields).forEach(generateFieldInstance(resultBean, resultBeanFields));
+        return resultBean;
+    }
+
     private static <T> T handleCreateInstanceException(Class<T> resolveClazz) {
-        ModiferIsAbstract(resolveClazz);
+        ModifierIsAbstract(resolveClazz);
         return noConstructor(resolveClazz);
     }
 
@@ -89,7 +100,7 @@ public class IoCContextImpl implements IoCContext {
         throw new IllegalStateException(String.format("%s has no default constructor", resolveClazz.getName()));
     }
 
-    private static <T> void ModiferIsAbstract(Class<T> resolveClazz) {
+    private static <T> void ModifierIsAbstract(Class<T> resolveClazz) {
         if (Modifier.isAbstract(resolveClazz.getModifiers())) {
             throw new IllegalArgumentException(String.format("%s is abstract", resolveClazz.getName()));
         }
@@ -120,6 +131,5 @@ public class IoCContextImpl implements IoCContext {
         });
         return contains[0];
     }
-
 
 }
