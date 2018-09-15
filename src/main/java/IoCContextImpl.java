@@ -1,7 +1,11 @@
+import java.io.File;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Predicate;
 
 public class IoCContextImpl implements IoCContext {
 
@@ -44,16 +48,65 @@ public class IoCContextImpl implements IoCContext {
 
         try {
             T resultBean = resolveClazz.newInstance();
+            Field[] resultBeanFields = resultBean.getClass().getDeclaredFields();
+            Field[] containsCreateOnTheFlyAnnotationFields = Arrays.stream(resultBeanFields).
+                    filter(getContainsCreateOnTheFlyAnnotationFields()).toArray(Field[]::new);
+            checkFieldsIsRegistered(containsCreateOnTheFlyAnnotationFields);
+            Arrays.stream(containsCreateOnTheFlyAnnotationFields).forEach(field -> {
+
+                Object filedInstance = this.getBean(field.getType());
+
+                Field resultBeanField = null;
+                try {
+                    resultBeanField = resultBean.getClass().getDeclaredField(field.getName());
+                } catch (NoSuchFieldException e) {
+                    throw new IllegalStateException("no such field");
+                }
+                resultBeanField.setAccessible(true);
+                try {
+                    resultBeanField.set(resultBean, filedInstance);
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            });
             return resultBean;
         } catch (IllegalAccessException e) {
             throw new IllegalStateException();
         } catch (InstantiationException e) {
-            if (Modifier.isAbstract(resolveClazz.getModifiers())) {
-                throw new IllegalArgumentException(String.format("%s is abstract", resolveClazz.getName()));
-            }
-            throw new IllegalStateException(String.format("%s has no default constructor", resolveClazz.getName()));
+            return handleCreateInstanceException(resolveClazz);
         }
 
+    }
+
+    private <T> T handleCreateInstanceException(Class<T> resolveClazz) {
+        ModiferIsAbstract(resolveClazz);
+        return noConstructor(resolveClazz);
+    }
+
+    private <T> T noConstructor(Class<T> resolveClazz) {
+        throw new IllegalStateException(String.format("%s has no default constructor", resolveClazz.getName()));
+    }
+
+    private <T> void ModiferIsAbstract(Class<T> resolveClazz) {
+        if (Modifier.isAbstract(resolveClazz.getModifiers())) {
+            throw new IllegalArgumentException(String.format("%s is abstract", resolveClazz.getName()));
+        }
+    }
+
+    private Predicate<Field> getContainsCreateOnTheFlyAnnotationFields() {
+        return field ->
+                Arrays.stream(field.getAnnotations())
+                        .filter(annotation ->
+                                annotation.annotationType().equals(CreateOnTheFly.class))
+                        .count() > 0;
+    }
+
+    private void checkFieldsIsRegistered(Field[] containsMyDependencyAnnotationFields) {
+        Arrays.stream(containsMyDependencyAnnotationFields).forEach(field -> {
+            if (!containerMapContainKey(field.getType())) {
+                throw new IllegalStateException();
+            }
+        });
     }
 
     private <T> boolean containerMapContainKey(Class<T> resolveClazz) {

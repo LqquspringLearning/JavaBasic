@@ -251,9 +251,9 @@ class IoCContextImplTest {
     @Test
     void should_support_annotation_inject() {
         IoCContext context = new IoCContextImpl();
-        context.registerBean(MyBean.class);
-        context.registerBean(MyDenpendency.class);
-        MyBean bean = context.getBean(MyBean.class);
-        assertSame(MyDenpendency.class, bean.getDenpendency().getClass());
+        context.registerBean(MyBeanWithAnnotation.class);
+        context.registerBean(MyDependency.class);
+        MyBeanWithAnnotation bean = context.getBean(MyBeanWithAnnotation.class);
+        assertSame(MyDependency.class, bean.getDependency().getClass());
     }
 }
