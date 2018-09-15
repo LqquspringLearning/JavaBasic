@@ -259,23 +259,23 @@ class IoCContextImplTest {
 
     @Test
     void should_support_register_multi_filed() {
-        IoCContext context  = new IoCContextImpl();
+        IoCContext context = new IoCContextImpl();
         context.registerBean(MyBeanWithAnnotation.class);
         context.registerBean(MyDependency.class);
         MyBeanWithAnnotation bean = context.getBean(MyBeanWithAnnotation.class);
         assertSame(MyDependency.class, bean.getDependency().getClass());
         assertSame(MyDependency.class, bean.getDependency2().getClass());
-        assertNotSame(bean.getDependency(),bean.getDependency2());
+        assertNotSame(bean.getDependency(), bean.getDependency2());
     }
 
     @Test
     void should_throw_exception_when_field_not_register() {
-        IoCContext context  = new IoCContextImpl();
+        IoCContext context = new IoCContextImpl();
         context.registerBean(MyBeanWithAnnotation.class);
         boolean hasException = false;
         try {
             context.getBean(MyBeanWithAnnotation.class);
-        } catch(Exception e){
+        } catch (Exception e) {
             hasException = true;
         }
         assertTrue(hasException);
@@ -283,7 +283,7 @@ class IoCContextImplTest {
 
     @Test
     void should_get_instance_when_one_field_registered_and_another_not_need_registered() {
-        IoCContext context  = new IoCContextImpl();
+        IoCContext context = new IoCContextImpl();
         context.registerBean(MyBeanWithAnnotation.class);
         context.registerBean(MyDependency.class);
         MyBeanWithAnnotation bean = context.getBean(MyBeanWithAnnotation.class);
@@ -291,7 +291,15 @@ class IoCContextImplTest {
     }
 
     @Test
-    void should_get_interface_instance() {
+    void should_get_interface_abstract_instance() {
+        IoCContext context = new IoCContextImpl();
+        context.registerBean(MyBeanWithInterface.class);
+        context.registerBean(MyDependency.class);
+        context.registerBean(MyDependencyAbstract.class, MyDependencyAbstractImpl.class);
+        context.registerBean(MyDependencyInterface.class, MyDependencyInterfaceImpl.class);
+        MyBeanWithInterface bean = context.getBean(MyBeanWithInterface.class);
+        assertSame(MyDependencyInterfaceImpl.class, bean.getMyDependencyInterface().getClass());
+        assertSame(MyDependencyAbstractImpl.class, bean.getMyDependencyAbstract().getClass());
 
     }
 }
