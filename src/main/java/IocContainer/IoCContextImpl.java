@@ -1,5 +1,6 @@
 package IocContainer;
 
+import Tools.LifeCycle;
 import Tools.ReflectorHelper;
 
 import java.lang.reflect.Field;
@@ -11,6 +12,7 @@ import java.util.function.Predicate;
 public class IoCContextImpl implements IoCContext {
 
     Map<Map<Class<?>, Class<?>>, Boolean> containerMap = new HashMap<>();
+    Map<Class<?>, Object> cache = new LinkedHashMap<>();
 
     @Override
     public void registerBean(Class<?> beanClazz) {
@@ -26,17 +28,33 @@ public class IoCContextImpl implements IoCContext {
 
     @Override
     public <T> T getBean(Class<T> resolveClazz) {
+        return getBean(resolveClazz, true);
+    }
+
+    private <T> T getBean(Class<T> resolveClazz, boolean isSingleton) {
         paramNullCheck(resolveClazz);
         if (!containerMapContainKey(resolveClazz))
             throw new IllegalStateException("resolveClazz is mandatory");
         try {
-            return generateInstance(resolveClazz);
+            T resultBean = null;
+            if (!isSingleton) {
+                resultBean = tryGetFromCache(resolveClazz);
+            }
+            if (resultBean == null)
+                resultBean = generateInstance(resolveClazz);
+            return resultBean;
         } catch (IllegalAccessException e) {
             throw new IllegalStateException();
         } catch (InstantiationException e) {
             return handleCreateInstanceException(resolveClazz);
         }
+    }
 
+    private <T> T tryGetFromCache(Class<T> resolveClazz) {
+        if (isCached(resolveClazz)) {
+            return (T) cache.get(resolveClazz);
+        }
+        return null;
     }
 
     @Override
@@ -83,7 +101,6 @@ public class IoCContextImpl implements IoCContext {
         containerMap.put(subMap, false);
     }
 
-
     private <T> Consumer<Field> generateFieldInstance(T resultBean, Field[] resultBeanFields) {
         return field -> {
             Object filedInstance = this.getBean(field.getType());
@@ -105,7 +122,18 @@ public class IoCContextImpl implements IoCContext {
                 filter(getContainsCreateOnTheFlyAnnotationFields()).toArray(Field[]::new);
         checkFieldsIsRegistered(containsCreateOnTheFlyAnnotationFields);
         Arrays.stream(containsCreateOnTheFlyAnnotationFields).forEach(generateFieldInstance(resultBean, resultBeanFields));
+        addToCache(resolveClazz, resultBean);
         return resultBean;
+    }
+
+    private <T> void addToCache(Class<T> resolveClazz, T resultBean) {
+        if (!isCached(resolveClazz)) {
+            cache.put(resolveClazz, resultBean);
+        }
+    }
+
+    private <T> boolean isCached(Class<T> resolveClazz) {
+        return cache.containsKey(resolveClazz);
     }
 
     private <T> Class<T> getInstanceType(Class<T> resolveClazz) {
