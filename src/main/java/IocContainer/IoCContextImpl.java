@@ -1,9 +1,7 @@
 package IocContainer;
 
-import Tools.LifeCycle;
 import Tools.ReflectorHelper;
 
-import javax.security.auth.kerberos.KerberosTicket;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -14,6 +12,7 @@ public class IoCContextImpl implements IoCContext {
 
     Map<Map<Class<?>, Class<?>>, Boolean> containerMap = new HashMap<>();
     Map<Class<?>, Object> cache = new LinkedHashMap<>();
+    private Exception closeException;
 
     @Override
     public void registerBean(Class<?> beanClazz) {
@@ -56,26 +55,35 @@ public class IoCContextImpl implements IoCContext {
     }
 
     @Override
-    public void close() {
+    public void close() throws Exception {
         List<Class<?>> keySetList = reverseKeySetList();
-        keySetList.forEach(closeInstance());
-
+        keySetList.forEach(closeInstanceConsumer());
+        if (closeException != null)
+            throw closeException;
     }
 
-    private Consumer<Class<?>> closeInstance() {
+    private Consumer<Class<?>> closeInstanceConsumer() {
         return key -> {
-            Object instance = cache.get(key);
-            if (IsContainThisInterface(AutoCloseable.class, instance.getClass())) {
-                AutoCloseable autoCloseable = (AutoCloseable) instance;
-
-                try {
-                    autoCloseable.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-            }
+            closeInstance(key);
         };
+    }
+
+    private void closeInstance(Object key) {
+        Object instance = cache.get(key);
+        if (IsContainThisInterface(AutoCloseable.class, instance.getClass())) {
+            AutoCloseable autoCloseable = (AutoCloseable) instance;
+
+            try {
+                autoCloseable.close();
+            } catch (Exception e) {
+                setException(e);
+            }
+        }
+    }
+
+    private void setException(Exception e) {
+        if (closeException != null) return;
+        closeException = e;
     }
 
     private List<Class<?>> reverseKeySetList() {

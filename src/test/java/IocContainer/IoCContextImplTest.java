@@ -1,5 +1,6 @@
 package IocContainer;
 
+import com.sun.xml.internal.ws.wsdl.writer.UsingAddressing;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import testClass.*;
@@ -348,5 +349,19 @@ class IoCContextImplTest {
 
     }
 
-
+    @Test
+    void should_throw_first_exception_when_dispose_this() {
+        MyBean bean = null;
+        try (IoCContext context = new IoCContextImpl()) {
+            context.registerBean(MyBean.class);
+            context.registerBean(MyBeanThrowException.class);
+            context.registerBean(MyBeanThrowException2.class);
+            context.getBean(MyBeanThrowException.class);
+            bean = context.getBean(MyBean.class);
+            context.getBean(MyBeanThrowException.class);
+        } catch (Exception e) {
+            assertNotNull(bean.getCloseTime());
+            assertEquals(MyBeanThrowException.class.getSimpleName(), e.getMessage());
+        }
+    }
 }
