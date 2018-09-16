@@ -1,5 +1,6 @@
 package IocContainer;
 
+import com.sun.xml.internal.fastinfoset.algorithm.BooleanEncodingAlgorithm;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import testClass.*;
@@ -322,5 +323,14 @@ class IoCContextImplTest {
         assertSame(MyDependencyAbstractImpl.class, bean.getMyDependencyAbstract().getClass());
     }
 
-
+    @Test
+    void should_first_inject_parent_fields() {
+        IoCContext context = new IoCContextImpl();
+        context.registerBean(MyDependencyAbstract.class, MyDependencyAbstractImpl.class);
+        context.registerBean(MyBeanWithAnnotation.class);
+        context.registerBean(MyDependency.class);
+        MyBeanWithAnnotation bean = context.getBean(MyBeanWithAnnotation.class);
+        assertTrue(bean.getMyDependencyAbstract().getTime() - bean.getDependency().getTime() < 0);
+        ;
+    }
 }
