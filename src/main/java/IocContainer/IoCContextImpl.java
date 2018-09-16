@@ -31,13 +31,13 @@ public class IoCContextImpl implements IoCContext {
         return getBean(resolveClazz, true);
     }
 
-    private <T> T getBean(Class<T> resolveClazz, boolean isSingleton) {
+    private <T> T getBean(Class<T> resolveClazz, boolean isTransient) {
         paramNullCheck(resolveClazz);
         if (!containerMapContainKey(resolveClazz))
             throw new IllegalStateException("resolveClazz is mandatory");
         try {
             T resultBean = null;
-            if (!isSingleton) {
+            if (!isTransient) {
                 resultBean = tryGetFromCache(resolveClazz);
             }
             if (resultBean == null)
