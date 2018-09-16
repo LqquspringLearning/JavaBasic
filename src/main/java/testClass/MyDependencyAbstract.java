@@ -4,7 +4,8 @@ import java.util.Date;
 
 public abstract class MyDependencyAbstract {
 
-    private Date time;
+    protected Date time;
+    protected Date closeTime;
 
     public MyDependencyAbstract() {
         time = new Date();

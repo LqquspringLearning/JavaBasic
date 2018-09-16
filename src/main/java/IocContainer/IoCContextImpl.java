@@ -3,6 +3,7 @@ package IocContainer;
 import Tools.LifeCycle;
 import Tools.ReflectorHelper;
 
+import javax.security.auth.kerberos.KerberosTicket;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.*;
@@ -51,16 +52,38 @@ public class IoCContextImpl implements IoCContext {
     }
 
     private <T> T tryGetFromCache(Class<T> resolveClazz) {
-        if (isCached(resolveClazz)) {
-            return (T) cache.get(resolveClazz);
-        }
-        return null;
+        return (T) cache.get(resolveClazz);
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
+        List<Class<?>> keySetList = reverseKeySetList();
+        keySetList.forEach(closeInstance());
 
     }
+
+    private Consumer<Class<?>> closeInstance() {
+        return key -> {
+            Object instance = cache.get(key);
+            if (IsContainThisInterface(AutoCloseable.class, instance.getClass())) {
+                AutoCloseable autoCloseable = (AutoCloseable) instance;
+
+                try {
+                    autoCloseable.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+            }
+        };
+    }
+
+    private List<Class<?>> reverseKeySetList() {
+        List<Class<?>> keySetList = new ArrayList<>(cache.keySet());
+        Collections.reverse(keySetList);
+        return keySetList;
+    }
+
 
     private <T> void paramCheck(Class<? super T> resolveClazz, Class<T> beanClazz) {
         if (!isInheritRelation(resolveClazz, beanClazz)) {
@@ -87,8 +110,8 @@ public class IoCContextImpl implements IoCContext {
             throw new IllegalArgumentException("resolveClazz is mandatory");
     }
 
-    private <T> boolean IsContainThisInterface(Class<? super T> resolveClazz, Class<T> beanClazz) {
-        return Arrays.stream(beanClazz.getInterfaces()).filter(i -> i.equals(resolveClazz)).count() > 0;
+    private boolean IsContainThisInterface(Class<?> interfaceType, Class<?> beanType) {
+        return Arrays.stream(beanType.getInterfaces()).filter(i -> i.equals(interfaceType)).count() > 0;
     }
 
     private <T> boolean isInheritRelation(Class<? super T> resolveClazz, Class<T> beanClazz) {
@@ -127,9 +150,7 @@ public class IoCContextImpl implements IoCContext {
     }
 
     private <T> void addToCache(Class<T> resolveClazz, T resultBean) {
-        if (!isCached(resolveClazz)) {
-            cache.put(resolveClazz, resultBean);
-        }
+        cache.put(resolveClazz, resultBean);
     }
 
     private <T> boolean isCached(Class<T> resolveClazz) {

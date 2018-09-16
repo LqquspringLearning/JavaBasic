@@ -1,6 +1,5 @@
 package IocContainer;
 
-import com.sun.xml.internal.fastinfoset.algorithm.BooleanEncodingAlgorithm;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import testClass.*;
@@ -331,6 +330,23 @@ class IoCContextImplTest {
         context.registerBean(MyDependency.class);
         MyBeanWithAnnotation bean = context.getBean(MyBeanWithAnnotation.class);
         assertTrue(bean.getMyDependencyAbstract().getTime() - bean.getDependency().getTime() < 0);
-        ;
     }
+
+    @Test
+    void should_closed_instance_first_when_close_ioc_context() {
+        MyDependency myDependency = null;
+        MyBean myBeanInstance = null;
+        try (IoCContext context = new IoCContextImpl()) {
+            context.registerBean(MyBean.class);
+            context.registerBean(MyDependency.class);
+            myDependency = context.getBean(MyDependency.class);
+            myBeanInstance = context.getBean(MyBean.class);
+        } catch (Exception e) {
+
+        }
+        assertTrue(myDependency.getCloseTime() - myBeanInstance.getCloseTime() >= 0);
+
+    }
+
+
 }

@@ -2,7 +2,7 @@ package testClass;
 
 import IocContainer.CreateOnTheFly;
 
-public class MyBeanWithAnnotation extends MyBeanWithAnnotationParentClass {
+public class MyBeanWithAnnotation extends MyBeanWithAnnotationParentClass  {
     @CreateOnTheFly
     private MyDependency dependency;
 
