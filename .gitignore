@@ -1,10 +1,5 @@
-*.iml
-*.ipr
-*.iws
-out
-.gradle
-.idea/
 .DS_Store
-*.kdb.lock
-*.kdbx.lock
-*.zip
+.gradle/
+.idea/
+out/
+build/
